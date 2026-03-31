@@ -1,4 +1,4 @@
-﻿# RestAssured Java API Testing
+# RestAssured Java API Testing
 
 ![CI](https://github.com/Djones-qa/restassured-java-api-testing/actions/workflows/api-tests.yml/badge.svg)
 
@@ -34,9 +34,10 @@ Enterprise-grade REST API testing framework using RestAssured and TestNG with Ja
 - Chained request - create then verify
 
 ## Run Tests
-`ash
+```bash
 mvn test
-`
+```
 
 ## Author
 Darrius Jones - github.com/Djones-qa
+
