@@ -1,8 +1,9 @@
-package tests;
+﻿package tests;
 
 import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import utils.ConfigReader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,29 +13,29 @@ import static org.hamcrest.Matchers.*;
 
 public class PostsTest extends BaseTest {
 
-    @Test(description = "GET all posts returns 100 records")
+    @Test(description = "GET all posts returns correct count")
     public void testGetAllPosts() {
         given()
-            .contentType("application/json")
+            .contentType(ConfigReader.getContentType())
         .when()
             .get("/posts")
         .then()
             .statusCode(200)
-            .body("size()", equalTo(100));
+            .body("size()", equalTo(ConfigReader.getTotalPosts()));
     }
 
     @Test(description = "GET single post returns correct data")
     public void testGetSinglePost() {
         given()
-            .contentType("application/json")
+            .contentType(ConfigReader.getContentType())
         .when()
-            .get("/posts/1")
+            .get("/posts/" + ConfigReader.getTestPostId())
         .then()
             .statusCode(200)
-            .body("id", equalTo(1))
+            .body("id", equalTo(ConfigReader.getTestPostId()))
             .body("title", notNullValue())
             .body("body", notNullValue())
-            .body("userId", equalTo(1));
+            .body("userId", equalTo(ConfigReader.getTestUserId()));
     }
 
     @Test(description = "POST create new post returns 201")
@@ -42,33 +43,33 @@ public class PostsTest extends BaseTest {
         Map<String, Object> payload = new HashMap<>();
         payload.put("title", "RestAssured Test Post");
         payload.put("body", "Created by RestAssured Java framework");
-        payload.put("userId", 1);
+        payload.put("userId", ConfigReader.getTestUserId());
 
         given()
-            .contentType("application/json")
+            .contentType(ConfigReader.getContentType())
             .body(payload)
         .when()
             .post("/posts")
         .then()
             .statusCode(201)
             .body("title", equalTo("RestAssured Test Post"))
-            .body("userId", equalTo(1))
+            .body("userId", equalTo(ConfigReader.getTestUserId()))
             .body("id", notNullValue());
     }
 
     @Test(description = "PUT update post returns 200")
     public void testUpdatePost() {
         Map<String, Object> payload = new HashMap<>();
-        payload.put("id", 1);
+        payload.put("id", ConfigReader.getTestPostId());
         payload.put("title", "Updated Title");
         payload.put("body", "Updated body content");
-        payload.put("userId", 1);
+        payload.put("userId", ConfigReader.getTestUserId());
 
         given()
-            .contentType("application/json")
+            .contentType(ConfigReader.getContentType())
             .body(payload)
         .when()
-            .put("/posts/1")
+            .put("/posts/" + ConfigReader.getTestPostId())
         .then()
             .statusCode(200)
             .body("title", equalTo("Updated Title"));
@@ -80,10 +81,10 @@ public class PostsTest extends BaseTest {
         payload.put("title", "Patched Title");
 
         given()
-            .contentType("application/json")
+            .contentType(ConfigReader.getContentType())
             .body(payload)
         .when()
-            .patch("/posts/1")
+            .patch("/posts/" + ConfigReader.getTestPostId())
         .then()
             .statusCode(200)
             .body("title", equalTo("Patched Title"));
@@ -92,32 +93,32 @@ public class PostsTest extends BaseTest {
     @Test(description = "DELETE post returns 200")
     public void testDeletePost() {
         given()
-            .contentType("application/json")
+            .contentType(ConfigReader.getContentType())
         .when()
-            .delete("/posts/1")
+            .delete("/posts/" + ConfigReader.getTestPostId())
         .then()
             .statusCode(200);
     }
 
-    @Test(description = "GET posts by userId filter")
+    @Test(description = "GET posts filtered by userId")
     public void testGetPostsByUser() {
         given()
-            .contentType("application/json")
-            .queryParam("userId", 1)
+            .contentType(ConfigReader.getContentType())
+            .queryParam("userId", ConfigReader.getTestUserId())
         .when()
             .get("/posts")
         .then()
             .statusCode(200)
             .body("size()", greaterThan(0))
-            .body("userId", everyItem(equalTo(1)));
+            .body("userId", everyItem(equalTo(ConfigReader.getTestUserId())));
     }
 
     @Test(description = "GET comments for a post")
     public void testGetCommentsForPost() {
         given()
-            .contentType("application/json")
+            .contentType(ConfigReader.getContentType())
         .when()
-            .get("/posts/1/comments")
+            .get("/posts/" + ConfigReader.getTestPostId() + "/comments")
         .then()
             .statusCode(200)
             .body("size()", greaterThan(0))
@@ -129,10 +130,10 @@ public class PostsTest extends BaseTest {
         Map<String, Object> payload = new HashMap<>();
         payload.put("title", "Chained Test");
         payload.put("body", "Testing chained requests");
-        payload.put("userId", 1);
+        payload.put("userId", ConfigReader.getTestUserId());
 
         Response createResponse = given()
-            .contentType("application/json")
+            .contentType(ConfigReader.getContentType())
             .body(payload)
         .when()
             .post("/posts")
