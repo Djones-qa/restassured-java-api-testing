@@ -21,6 +21,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Strip BOM from Java files
+        run: find src -name "*.java" -exec sed -i '1s/^\xEF\xBB\xBF//' {} +
+
       - name: Run tests
         run: mvn test
 

@@ -1,4 +1,4 @@
-﻿package tests;
+package tests;
 
 import io.restassured.response.Response;
 import org.testng.Assert;
