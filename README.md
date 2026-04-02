@@ -2,13 +2,14 @@
 
 ![CI](https://github.com/Djones-qa/restassured-java-api-testing/actions/workflows/api-tests.yml/badge.svg)
 
-Enterprise-grade REST API testing framework using RestAssured and TestNG with Java 17. Features POJO deserialization, configuration management via properties files, and data-driven testing with TestNG DataProvider.
+Enterprise-grade REST API testing framework using RestAssured and TestNG with Java 17. Features POJO deserialization, Log4j2 logging, configuration management via properties files, and data-driven testing with TestNG DataProvider.
 
 ## Tech Stack
 - Java 17
 - RestAssured 5.4.0
 - TestNG 7.9.0
-- Jackson Databind
+- Jackson Databind 2.17.0
+- Log4j2 2.23.1
 - Maven
 - GitHub Actions CI
 
@@ -27,9 +28,11 @@ restassured-java-api-testing/
 │   │   ├── PostsTest.java
 │   │   └── UsersTest.java
 │   └── utils/
-│       └── ConfigReader.java
+│       ├── ConfigReader.java
+│       └── LogUtils.java
 ├── src/test/resources/
 │   ├── config.properties
+│   ├── log4j2.xml
 │   └── testng.xml
 └── .github/workflows/
     └── api-tests.yml
@@ -42,6 +45,13 @@ All test configuration is externalized in `config.properties`:
 - Test data (user IDs, expected counts)
 - Report settings
 
+## Logging
+Log4j2 is configured via `log4j2.xml` with two appenders:
+- Console output for real-time feedback
+- File output to `reports/api-tests.log`
+
+Each test logs start, request, response, pass/fail, and end events via `LogUtils`.
+
 ## Test Coverage (24 tests)
 
 ### Users API (11 tests)
@@ -53,7 +63,7 @@ All test configuration is externalized in `config.properties`:
 - GET response time under threshold
 - Data driven tests across 5 users (TestNG DataProvider)
 
-### Posts API (8 tests)
+### Posts API (9 tests)
 - GET all posts returns correct count
 - GET single post deserializes into POJO correctly
 - POST create new post using POJO returns 201
