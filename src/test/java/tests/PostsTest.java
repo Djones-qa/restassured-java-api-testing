@@ -1,14 +1,14 @@
 package tests;
 
 import io.restassured.response.Response;
-import models.Post;
 import models.Comment;
+import models.Post;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import utils.ConfigReader;
 import utils.LogUtils;
 
-import static io.restassured.RestAssured.*;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class PostsTest extends BaseTest {
@@ -17,8 +17,7 @@ public class PostsTest extends BaseTest {
     public void testGetAllPosts() {
         LogUtils.startTest("testGetAllPosts");
         LogUtils.request("GET", "/posts");
-        given()
-            .contentType(ConfigReader.getContentType())
+        given(requestSpec)
         .when()
             .get("/posts")
         .then()
@@ -32,8 +31,7 @@ public class PostsTest extends BaseTest {
     public void testGetSinglePostAsPOJO() {
         LogUtils.startTest("testGetSinglePostAsPOJO");
         LogUtils.request("GET", "/posts/" + ConfigReader.getTestPostId());
-        Response response = given()
-            .contentType(ConfigReader.getContentType())
+        Response response = given(requestSpec)
         .when()
             .get("/posts/" + ConfigReader.getTestPostId())
         .then()
@@ -56,8 +54,7 @@ public class PostsTest extends BaseTest {
         LogUtils.request("POST", "/posts");
         Post newPost = new Post(ConfigReader.getTestUserId(), "RestAssured POJO Post", "Created using POJO class");
 
-        Response response = given()
-            .contentType(ConfigReader.getContentType())
+        Response response = given(requestSpec)
             .body(newPost)
         .when()
             .post("/posts")
@@ -80,8 +77,7 @@ public class PostsTest extends BaseTest {
         LogUtils.request("PUT", "/posts/" + ConfigReader.getTestPostId());
         Post updatedPost = new Post(ConfigReader.getTestUserId(), "Updated POJO Title", "Updated body content");
 
-        Response response = given()
-            .contentType(ConfigReader.getContentType())
+        Response response = given(requestSpec)
             .body(updatedPost)
         .when()
             .put("/posts/" + ConfigReader.getTestPostId())
@@ -99,8 +95,7 @@ public class PostsTest extends BaseTest {
     public void testPatchPost() {
         LogUtils.startTest("testPatchPost");
         LogUtils.request("PATCH", "/posts/" + ConfigReader.getTestPostId());
-        given()
-            .contentType(ConfigReader.getContentType())
+        given(requestSpec)
             .body("{\"title\": \"Patched Title\"}")
         .when()
             .patch("/posts/" + ConfigReader.getTestPostId())
@@ -115,8 +110,7 @@ public class PostsTest extends BaseTest {
     public void testDeletePost() {
         LogUtils.startTest("testDeletePost");
         LogUtils.request("DELETE", "/posts/" + ConfigReader.getTestPostId());
-        given()
-            .contentType(ConfigReader.getContentType())
+        given(requestSpec)
         .when()
             .delete("/posts/" + ConfigReader.getTestPostId())
         .then()
@@ -129,8 +123,7 @@ public class PostsTest extends BaseTest {
     public void testGetPostsByUser() {
         LogUtils.startTest("testGetPostsByUser");
         LogUtils.request("GET", "/posts?userId=" + ConfigReader.getTestUserId());
-        given()
-            .contentType(ConfigReader.getContentType())
+        given(requestSpec)
             .queryParam("userId", ConfigReader.getTestUserId())
         .when()
             .get("/posts")
@@ -146,8 +139,7 @@ public class PostsTest extends BaseTest {
     public void testGetCommentsAsPOJO() {
         LogUtils.startTest("testGetCommentsAsPOJO");
         LogUtils.request("GET", "/posts/" + ConfigReader.getTestPostId() + "/comments");
-        Response response = given()
-            .contentType(ConfigReader.getContentType())
+        Response response = given(requestSpec)
         .when()
             .get("/posts/" + ConfigReader.getTestPostId() + "/comments")
         .then()
@@ -171,8 +163,7 @@ public class PostsTest extends BaseTest {
         LogUtils.request("POST", "/posts");
         Post newPost = new Post(ConfigReader.getTestUserId(), "Chained POJO Test", "Testing chained requests with POJO");
 
-        Response createResponse = given()
-            .contentType(ConfigReader.getContentType())
+        Response createResponse = given(requestSpec)
             .body(newPost)
         .when()
             .post("/posts")

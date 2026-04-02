@@ -2,12 +2,12 @@
 
 ![CI](https://github.com/Djones-qa/restassured-java-api-testing/actions/workflows/api-tests.yml/badge.svg)
 
-Enterprise-grade REST API testing framework using RestAssured and TestNG with Java 17. Features POJO deserialization, Log4j2 logging, configuration management via properties files, and data-driven testing with TestNG DataProvider.
+Enterprise-grade REST API testing framework using RestAssured and TestNG with Java 17. Features POJO deserialization, Log4j2 logging, parallel execution, configuration management via properties files, and data-driven testing with TestNG DataProvider.
 
 ## Tech Stack
 - Java 17
 - RestAssured 5.4.0
-- TestNG 7.9.0
+- TestNG 7.9.0 (parallel execution)
 - Jackson Databind 2.17.0
 - Log4j2 2.23.1
 - Maven
@@ -45,6 +45,9 @@ All test configuration is externalized in `config.properties`:
 - Test data (user IDs, expected counts)
 - Report settings
 
+## Parallel Execution
+Tests run in parallel at the method level using TestNG with 3 threads configured in `testng.xml`. Thread safety is achieved via a shared `RequestSpecification` built in `BaseTest` using `RequestSpecBuilder`, avoiding race conditions on RestAssured's static global state.
+
 ## Logging
 Log4j2 is configured via `log4j2.xml` with two appenders:
 - Console output for real-time feedback
@@ -61,7 +64,7 @@ Each test logs start, request, response, pass/fail, and end events via `LogUtils
 - GET user company validates name and catchPhrase
 - GET invalid user returns 404
 - GET response time under threshold
-- Data driven tests across 5 users (TestNG DataProvider)
+- Data driven tests across 5 users (TestNG DataProvider, parallel)
 
 ### Posts API (9 tests)
 - GET all posts returns correct count
