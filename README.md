@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/Djones-qa/restassured-java-api-testing/actions/workflows/api-tests.yml/badge.svg)
 
-Enterprise-grade REST API testing framework using RestAssured and TestNG with Java 17. Features configuration management via properties files and data-driven testing with TestNG DataProvider.
+Enterprise-grade REST API testing framework using RestAssured and TestNG with Java 17. Features POJO deserialization, configuration management via properties files, and data-driven testing with TestNG DataProvider.
 
 ## Tech Stack
 - Java 17
@@ -13,13 +13,19 @@ Enterprise-grade REST API testing framework using RestAssured and TestNG with Ja
 - GitHub Actions CI
 
 ## Project Structure
-`
+```
 restassured-java-api-testing/
 ├── src/test/java/
+│   ├── models/
+│   │   ├── Address.java
+│   │   ├── Comment.java
+│   │   ├── Company.java
+│   │   ├── Post.java
+│   │   └── User.java
 │   ├── tests/
 │   │   ├── BaseTest.java
-│   │   ├── UsersTest.java
-│   │   └── PostsTest.java
+│   │   ├── PostsTest.java
+│   │   └── UsersTest.java
 │   └── utils/
 │       └── ConfigReader.java
 ├── src/test/resources/
@@ -27,41 +33,41 @@ restassured-java-api-testing/
 │   └── testng.xml
 └── .github/workflows/
     └── api-tests.yml
-`
+```
 
-## Configuration Management
-All test configuration is externalized in config.properties:
-- Base URL
-- Content type
-- Timeouts
+## Configuration
+All test configuration is externalized in `config.properties`:
+- Base URL and content type
+- Connection and response timeouts
 - Test data (user IDs, expected counts)
 - Report settings
 
-## Test Coverage (19 tests)
+## Test Coverage (24 tests)
 
-### Users API (6 tests)
+### Users API (11 tests)
 - GET all users returns 200 and correct count
-- GET single user validates correct data
-- GET user schema field validation
+- GET single user deserializes into POJO correctly
+- GET user address validates city, zipcode, and street
+- GET user company validates name and catchPhrase
 - GET invalid user returns 404
 - GET response time under threshold
 - Data driven tests across 5 users (TestNG DataProvider)
 
-### Posts API (13 tests)
+### Posts API (8 tests)
 - GET all posts returns correct count
-- GET single post validates correct data
-- POST create new post returns 201
-- PUT update post returns 200
-- PATCH partially update post
+- GET single post deserializes into POJO correctly
+- POST create new post using POJO returns 201
+- PUT update post using POJO returns 200
+- PATCH partially update post returns 200
 - DELETE post returns 200
 - GET posts filtered by userId
-- GET comments for a post
-- Chained request - create then verify
+- GET comments deserializes into POJO array
+- Chained request - create post then verify using POJO
 
 ## Run Tests
-`ash
+```bash
 mvn test
-`
+```
 
 ## Author
 Darrius Jones - github.com/Djones-qa

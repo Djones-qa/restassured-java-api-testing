@@ -1,12 +1,11 @@
 package tests;
 
 import io.restassured.response.Response;
+import models.Post;
+import models.Comment;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import utils.ConfigReader;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
@@ -24,65 +23,70 @@ public class PostsTest extends BaseTest {
             .body("size()", equalTo(ConfigReader.getTotalPosts()));
     }
 
-    @Test(description = "GET single post returns correct data")
-    public void testGetSinglePost() {
-        given()
+    @Test(description = "GET single post deserializes into POJO correctly")
+    public void testGetSinglePostAsPOJO() {
+        Response response = given()
             .contentType(ConfigReader.getContentType())
         .when()
             .get("/posts/" + ConfigReader.getTestPostId())
         .then()
             .statusCode(200)
-            .body("id", equalTo(ConfigReader.getTestPostId()))
-            .body("title", notNullValue())
-            .body("body", notNullValue())
-            .body("userId", equalTo(ConfigReader.getTestUserId()));
+            .extract().response();
+
+        Post post = response.as(Post.class);
+
+        Assert.assertEquals(post.getId(), ConfigReader.getTestPostId());
+        Assert.assertNotNull(post.getTitle(), "Title should not be null");
+        Assert.assertNotNull(post.getBody(), "Body should not be null");
+        Assert.assertEquals(post.getUserId(), ConfigReader.getTestUserId());
+
+        System.out.println("Post POJO: " + post);
     }
 
-    @Test(description = "POST create new post returns 201")
-    public void testCreatePost() {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("title", "RestAssured Test Post");
-        payload.put("body", "Created by RestAssured Java framework");
-        payload.put("userId", ConfigReader.getTestUserId());
+    @Test(description = "POST create new post using POJO returns 201")
+    public void testCreatePostWithPOJO() {
+        Post newPost = new Post(ConfigReader.getTestUserId(), "RestAssured POJO Post", "Created using POJO class");
 
-        given()
+        Response response = given()
             .contentType(ConfigReader.getContentType())
-            .body(payload)
+            .body(newPost)
         .when()
             .post("/posts")
         .then()
             .statusCode(201)
-            .body("title", equalTo("RestAssured Test Post"))
-            .body("userId", equalTo(ConfigReader.getTestUserId()))
-            .body("id", notNullValue());
+            .extract().response();
+
+        Post createdPost = response.as(Post.class);
+
+        Assert.assertEquals(createdPost.getTitle(), "RestAssured POJO Post");
+        Assert.assertEquals(createdPost.getUserId(), ConfigReader.getTestUserId());
+        Assert.assertNotNull(createdPost.getId(), "ID should be assigned");
+
+        System.out.println("Created Post: " + createdPost);
     }
 
-    @Test(description = "PUT update post returns 200")
-    public void testUpdatePost() {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("id", ConfigReader.getTestPostId());
-        payload.put("title", "Updated Title");
-        payload.put("body", "Updated body content");
-        payload.put("userId", ConfigReader.getTestUserId());
+    @Test(description = "PUT update post using POJO returns 200")
+    public void testUpdatePostWithPOJO() {
+        Post updatedPost = new Post(ConfigReader.getTestUserId(), "Updated POJO Title", "Updated body content");
 
-        given()
+        Response response = given()
             .contentType(ConfigReader.getContentType())
-            .body(payload)
+            .body(updatedPost)
         .when()
             .put("/posts/" + ConfigReader.getTestPostId())
         .then()
             .statusCode(200)
-            .body("title", equalTo("Updated Title"));
+            .extract().response();
+
+        Post responsePost = response.as(Post.class);
+        Assert.assertEquals(responsePost.getTitle(), "Updated POJO Title");
     }
 
     @Test(description = "PATCH partially update post returns 200")
     public void testPatchPost() {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("title", "Patched Title");
-
         given()
             .contentType(ConfigReader.getContentType())
-            .body(payload)
+            .body("{\"title\": \"Patched Title\"}")
         .when()
             .patch("/posts/" + ConfigReader.getTestPostId())
         .then()
@@ -113,36 +117,45 @@ public class PostsTest extends BaseTest {
             .body("userId", everyItem(equalTo(ConfigReader.getTestUserId())));
     }
 
-    @Test(description = "GET comments for a post")
-    public void testGetCommentsForPost() {
-        given()
+    @Test(description = "GET comments deserializes into POJO array")
+    public void testGetCommentsAsPOJO() {
+        Response response = given()
             .contentType(ConfigReader.getContentType())
         .when()
             .get("/posts/" + ConfigReader.getTestPostId() + "/comments")
         .then()
             .statusCode(200)
-            .body("size()", greaterThan(0))
-            .body("email", everyItem(notNullValue()));
+            .extract().response();
+
+        Comment[] comments = response.as(Comment[].class);
+
+        Assert.assertTrue(comments.length > 0, "Should have comments");
+        for (Comment comment : comments) {
+            Assert.assertNotNull(comment.getEmail(), "Email should not be null");
+            Assert.assertEquals(comment.getPostId(), ConfigReader.getTestPostId());
+        }
+
+        System.out.println("First comment: " + comments[0]);
     }
 
-    @Test(description = "Chained request - create post then verify")
-    public void testChainedRequest() {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("title", "Chained Test");
-        payload.put("body", "Testing chained requests");
-        payload.put("userId", ConfigReader.getTestUserId());
+    @Test(description = "Chained request - create post then verify using POJO")
+    public void testChainedRequestWithPOJO() {
+        Post newPost = new Post(ConfigReader.getTestUserId(), "Chained POJO Test", "Testing chained requests with POJO");
 
         Response createResponse = given()
             .contentType(ConfigReader.getContentType())
-            .body(payload)
+            .body(newPost)
         .when()
             .post("/posts")
         .then()
             .statusCode(201)
             .extract().response();
 
-        String title = createResponse.jsonPath().getString("title");
-        Assert.assertEquals(title, "Chained Test", "Title should match");
-        Assert.assertNotNull(createResponse.jsonPath().getString("id"), "ID should not be null");
+        Post createdPost = createResponse.as(Post.class);
+
+        Assert.assertEquals(createdPost.getTitle(), "Chained POJO Test");
+        Assert.assertNotNull(createdPost.getId(), "ID should not be null");
+
+        System.out.println("Chained test created post: " + createdPost);
     }
 }

@@ -1,5 +1,9 @@
 package tests;
 
+import io.restassured.response.Response;
+import models.User;
+import models.Address;
+import models.Company;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
@@ -21,33 +25,63 @@ public class UsersTest extends BaseTest {
             .body("size()", equalTo(ConfigReader.getTotalUsers()));
     }
 
-    @Test(description = "GET single user returns correct data")
-    public void testGetSingleUser() {
-        given()
+    @Test(description = "GET single user deserializes into POJO correctly")
+    public void testGetSingleUserAsPOJO() {
+        Response response = given()
             .contentType(ConfigReader.getContentType())
         .when()
             .get("/users/" + ConfigReader.getTestUserId())
         .then()
             .statusCode(200)
-            .body("id", equalTo(ConfigReader.getTestUserId()))
-            .body("name", notNullValue())
-            .body("email", notNullValue())
-            .body("username", notNullValue());
+            .extract().response();
+
+        User user = response.as(User.class);
+
+        Assert.assertEquals(user.getId(), ConfigReader.getTestUserId());
+        Assert.assertNotNull(user.getName(), "Name should not be null");
+        Assert.assertNotNull(user.getEmail(), "Email should not be null");
+        Assert.assertNotNull(user.getUsername(), "Username should not be null");
+        Assert.assertNotNull(user.getAddress(), "Address should not be null");
+        Assert.assertNotNull(user.getCompany(), "Company should not be null");
+
+        System.out.println("User POJO: " + user);
+        System.out.println("Address: " + user.getAddress());
+        System.out.println("Company: " + user.getCompany());
     }
 
-    @Test(description = "GET user validates schema fields")
-    public void testUserSchemaValidation() {
-        given()
+    @Test(description = "GET user address validates city and zipcode")
+    public void testUserAddressValidation() {
+        Response response = given()
             .contentType(ConfigReader.getContentType())
         .when()
             .get("/users/" + ConfigReader.getTestUserId())
         .then()
             .statusCode(200)
-            .body("containsKey('id')", is(true))
-            .body("containsKey('name')", is(true))
-            .body("containsKey('email')", is(true))
-            .body("containsKey('phone')", is(true))
-            .body("containsKey('website')", is(true));
+            .extract().response();
+
+        User user = response.as(User.class);
+        Address address = user.getAddress();
+
+        Assert.assertNotNull(address.getCity(), "City should not be null");
+        Assert.assertNotNull(address.getZipcode(), "Zipcode should not be null");
+        Assert.assertNotNull(address.getStreet(), "Street should not be null");
+    }
+
+    @Test(description = "GET user company validates name")
+    public void testUserCompanyValidation() {
+        Response response = given()
+            .contentType(ConfigReader.getContentType())
+        .when()
+            .get("/users/" + ConfigReader.getTestUserId())
+        .then()
+            .statusCode(200)
+            .extract().response();
+
+        User user = response.as(User.class);
+        Company company = user.getCompany();
+
+        Assert.assertNotNull(company.getName(), "Company name should not be null");
+        Assert.assertNotNull(company.getCatchPhrase(), "CatchPhrase should not be null");
     }
 
     @Test(description = "GET invalid user returns 404")
@@ -76,14 +110,19 @@ public class UsersTest extends BaseTest {
         return new Object[][] {{1}, {2}, {3}, {4}, {5}};
     }
 
-    @Test(dataProvider = "userIds", description = "GET multiple users data driven")
-    public void testMultipleUsers(int userId) {
-        given()
+    @Test(dataProvider = "userIds", description = "GET multiple users as POJO data driven")
+    public void testMultipleUsersAsPOJO(int userId) {
+        Response response = given()
             .contentType(ConfigReader.getContentType())
         .when()
             .get("/users/" + userId)
         .then()
             .statusCode(200)
-            .body("id", equalTo(userId));
+            .extract().response();
+
+        User user = response.as(User.class);
+        Assert.assertEquals(user.getId(), userId);
+        Assert.assertNotNull(user.getName());
+        Assert.assertNotNull(user.getEmail());
     }
 }
